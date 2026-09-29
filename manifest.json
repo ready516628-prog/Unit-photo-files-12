@@ -1,0 +1,13 @@
+{
+  "name": "Unit Photo Files",
+  "short_name": "Unit Photos",
+  "description": "Offline folders for math units, exercises, questions and answer photos.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6fb",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}

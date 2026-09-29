@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d4ed8">
+<link rel="manifest" href="manifest.json">
+<title>Unit Photo Files</title>
+<style>
+:root{--blue:#1d4ed8;--bg:#f3f6fb;--card:#fff;--text:#172033;--muted:#64748b;--line:#dce4f0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{background:var(--blue);color:white;padding:18px 16px;position:sticky;top:0;z-index:2;box-shadow:0 2px 8px #0002}
+header h1{font-size:21px;margin:0 0 5px}header p{margin:0;font-size:13px;opacity:.9}
+main{max-width:760px;margin:auto;padding:16px 14px 90px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:0;border-radius:11px;padding:11px 14px;font-weight:650;font-size:14px;cursor:pointer;background:var(--blue);color:white}.btn.secondary{background:#e8eefb;color:#1e40af}.btn.danger{background:#fee2e2;color:#991b1b}.btn.light{background:#fff;color:var(--text);border:1px solid var(--line)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin:12px 0;box-shadow:0 2px 7px #1e293b08}
+h2{font-size:18px;margin:0 0 12px}.muted{color:var(--muted);font-size:13px}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;margin:6px 0 10px}
+label{font-size:13px;color:var(--muted);font-weight:650}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:13px;margin:9px 0;background:#fff}
+.item .name{font-weight:700;overflow-wrap:anywhere}.item .sub{font-size:12px;color:var(--muted);margin-top:3px}
+.breadcrumb{font-size:13px;color:var(--muted);margin:0 0 12px;overflow-wrap:anywhere}
+.photos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.photo{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}.photo img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#eef2f7;display:block}.photo .pt{padding:8px;font-size:13px;font-weight:650;overflow-wrap:anywhere}.photo .pa{padding:0 8px 8px;display:flex;gap:6px;flex-wrap:wrap}.photo .pa button{font-size:12px;padding:7px 9px}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed #b9c6d9;border-radius:12px}
+.hidden{display:none!important}
+footer{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px;z-index:3}
+footer .btn{min-width:130px}
+dialog{border:0;border-radius:18px;width:min(92vw,480px);padding:20px;box-shadow:0 15px 60px #0004}dialog::backdrop{background:#0f172a88}dialog h2{margin-bottom:8px}
+.small{font-size:12px}
+</style>
+</head>
+<body>
+<header><h1>📚 Unit Photo Files</h1><p>Save question & answer photos offline on this phone</p></header>
+<main>
+  <div class="row" style="justify-content:space-between;margin-bottom:12px">
+    <button class="btn secondary" id="backBtn">← Back</button>
+    <button class="btn light" id="homeBtn">🏠 Classes</button>
+  </div>
+  <div class="breadcrumb" id="crumb">Classes</div>
+  <section class="card" id="addCard">
+    <h2 id="addTitle">Add a class</h2>
+    <label for="newName">Name</label>
+    <input id="newName" placeholder="e.g. 2nd Year / Unit 1 / Exercise 1">
+    <button class="btn" id="createBtn">＋ Add</button>
+  </section>
+  <section class="card" id="photoCard">
+    <h2>📷 Save photos here</h2>
+    <p class="muted" id="photoHint">Open a class, unit, subunit or exercise, then choose photos to save in it.</p>
+    <label for="photoInput">Choose question/answer photos from Gallery</label>
+    <input id="photoInput" type="file" accept="image/*" multiple>
+    <label for="photoLabel">Photo type (optional)</label>
+    <select id="photoLabel"><option>Question</option><option>Answer</option><option>Question & Answer</option><option>Notes</option><option>Other</option></select>
+    <button class="btn" id="savePhotosBtn">Save selected photos offline</button>
+    <p class="muted small">Photos are stored in this browser on this phone (offline). Keep a backup if you clear browser data or uninstall the app.</p>
+  </section>
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <h2 id="listTitle">Your classes</h2>
+      <span class="muted" id="count"></span>
+    </div>
+    <div id="items"></div>
+  </section>
+  <section class="card">
+    <h2>🖼️ Saved photos</h2>
+    <div id="photos" class="photos"></div>
+  </section>
+  <section class="card">
+    <h2>Backup & Restore</h2>
+    <p class="muted">Export a backup file to keep your folders and photos. Import it later on this device.</p>
+    <div class="row">
+      <button class="btn secondary" id="exportBtn">Export backup</button>
+      <label class="btn light" for="importInput" style="cursor:pointer">Import backup</label>
+      <input class="hidden" id="importInput" type="file" accept="application/json">
+    </div>
+  </section>
+</main>
+<footer><button class="btn secondary" id="footerBack">← Back</button><button class="btn" id="footerAdd">＋ Add</button></footer>
+<dialog id="renameDialog">
+  <h2>Rename item</h2><input id="renameInput" placeholder="New name">
+  <div class="row"><button class="btn" id="renameSave">Save</button><button class="btn secondary" id="renameCancel">Cancel</button></div>
+</dialog>
+<script>
+const DB_NAME='UnitPhotoFilesDB', DB_VERSION=1, STORE='records';
+let db, currentId=null, path=[], renameId=null;
+const $=id=>document.getElementById(id);
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,DB_VERSION);req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains(STORE)){const s=d.createObjectStore(STORE,{keyPath:'id'});s.createIndex('parentId','parentId',{unique:false});}};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+function all(){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly');const req=tx.objectStore(STORE).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+function put(obj){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(obj);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
+function del(id){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);});}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function currentLevel(){return path.length;}
+function parentId(){return currentId;}
+function childType(){return ['class','unit','subunit','exercise'][Math.min(currentLevel(),3)];}
+function typeName(t){return ({class:'Class',unit:'Unit',subunit:'Subunit',exercise:'Exercise',photo:'Photo'})[t]||t;}
+async function render(){
+ const records=await all(), current=records.find(x=>x.id===currentId);
+ const labels=['Classes','Units','Subunits','Exercises'];
+ $('crumb').textContent=path.map(x=>x.name).concat(current?[]:[]).join('  ›  ')||'Classes';
+ $('addTitle').textContent=currentLevel()===0?'Add a class':`Add ${typeName(childType()).toLowerCase()}`;
+ $('newName').placeholder=currentLevel()===0?'e.g. 2nd Year':currentLevel()===1?'e.g. Unit 1':currentLevel()===2?'e.g. Subunit 1':'e.g. Exercise 1';
+ $('listTitle').textContent=currentLevel()===0?'Your classes':`Your ${labels[Math.min(currentLevel(),3)].toLowerCase()}`;
+ $('photoHint').textContent=currentId?`Photos will be saved inside: ${path.map(x=>x.name).join(' › ')}`:'First open a class to save photos inside it.';
+ $('photoCard').classList.toggle('hidden',!currentId);
+ const kids=records.filter(x=>x.type!=='photo'&&x.parentId===currentId);
+ $('count').textContent=kids.length?`${kids.length} item(s)`:'';const box=$('items');box.innerHTML='';
+ if(!kids.length){box.innerHTML=`<div class="empty">No ${labels[Math.min(currentLevel(),3)].toLowerCase()} yet. Use the Add box above.</div>`;}
+ kids.sort((a,b)=>a.created-b.created).forEach(item=>{
+  const div=document.createElement('div');div.className='item';
+  const left=document.createElement('div');left.style.flex='1';left.innerHTML=`<div class="name">${esc(item.name)}</div><div class="sub">${typeName(item.type)}</div>`;
+  const actions=document.createElement('div');actions.className='row';
+  const open=document.createElement('button');open.className='btn secondary';open.textContent='Open';open.onclick=()=>{currentId=item.id;path.push({id:item.id,name:item.name});render();};
+  const rename=document.createElement('button');rename.className='btn light';rename.textContent='Rename';rename.onclick=()=>showRename(item);
+  const remove=document.createElement('button');remove.className='btn danger';remove.textContent='Delete';remove.onclick=()=>removeTree(item.id);
+  actions.append(open,rename,remove);div.append(left,actions);box.append(div);
+ });
+ const ph=records.filter(x=>x.type==='photo'&&x.parentId===currentId);
+ const pbox=$('photos');pbox.innerHTML='';
+ if(!currentId){pbox.innerHTML='<div class="empty" style="grid-column:1/-1">Open a class or exercise to see its saved photos.</div>';return;}
+ if(!ph.length){pbox.innerHTML='<div class="empty" style="grid-column:1/-1">No photos saved here yet. Select photos above and tap Save.</div>';return;}
+ ph.sort((a,b)=>a.created-b.created).forEach(p=>{
+  const card=document.createElement('div');card.className='photo';
+  const img=document.createElement('img');img.src=p.data;img.alt=p.name;
+  const title=document.createElement('div');title.className='pt';title.textContent=`${p.label}: ${p.name}`;
+  const acts=document.createElement('div');acts.className='pa';
+  const view=document.createElement('button');view.className='btn secondary';view.textContent='View';view.onclick=()=>{const w=window.open();if(w){w.document.write(`<title>${esc(p.name)}</title><img src="${p.data}" style="max-width:100%;height:auto">`);}};
+  const save=document.createElement('button');save.className='btn light';save.textContent='Download';save.onclick=()=>{const a=document.createElement('a');a.href=p.data;a.download=p.name;a.click();};
+  const delBtn=document.createElement('button');delBtn.className='btn danger';delBtn.textContent='Delete';delBtn.onclick=async()=>{if(confirm('Delete this photo?')){await del(p.id);render();}};
+  acts.append(view,save,delBtn);card.append(img,title,acts);pbox.append(card);
+ });
+}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+$('createBtn').onclick=async()=>{const name=$('newName').value.trim();if(!name){alert('Please enter a name.');return;}await put({id:uid(),type:childType(),name,parentId:currentId,created:Date.now()});$('newName').value='';render();};
+$('footerAdd').onclick=()=>{$('newName').focus();window.scrollTo({top:0,behavior:'smooth'});};
+async function goBack(){if(path.length){path.pop();currentId=path.length?path[path.length-1].id:null;await render();}}
+$('backBtn').onclick=goBack;$('footerBack').onclick=goBack;
+$('homeBtn').onclick=()=>{path=[];currentId=null;render();};
+$('savePhotosBtn').onclick=async()=>{
+ if(!currentId){alert('Please open a class or exercise first.');return;}
+ const files=[...$('photoInput').files];if(!files.length){alert('Please choose photo(s) from Gallery first.');return;}
+ try{
+  for(const f of files){if(!f.type.startsWith('image/'))continue;const data=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(f);});await put({id:uid(),type:'photo',name:f.name,label:$('photoLabel').value,parentId:currentId,data,created:Date.now()});}
+  $('photoInput').value='';alert('Photos saved offline on this phone.');render();
+ }catch(e){alert('Could not save. Your phone storage may be full. Try fewer/smaller photos.');}
+};
+async function removeTree(id){if(!confirm('Delete this item and its contents/photos?'))return;const records=await all();const ids=new Set([id]);let changed=true;while(changed){changed=false;for(const r of records){if(ids.has(r.parentId)&&!ids.has(r.id)){ids.add(r.id);changed=true;}}}for(const x of ids)await del(x);render();}
+function showRename(item){renameId=item.id;$('renameInput').value=item.name;$('renameDialog').showModal();}
+$('renameSave').onclick=async()=>{const records=await all(),r=records.find(x=>x.id===renameId),name=$('renameInput').value.trim();if(r&&name){r.name=name;await put(r);const p=path.find(x=>x.id===r.id);if(p)p.name=name;} $('renameDialog').close();render();};
+$('renameCancel').onclick=()=>$('renameDialog').close();
+$('exportBtn').onclick=async()=>{const data=JSON.stringify({app:'Unit Photo Files',version:1,records:await all()});const blob=new Blob([data],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='unit-photo-files-backup.json';a.click();URL.revokeObjectURL(a.href);};
+$('importInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data.records))throw Error();for(const r of data.records)await put(r);alert('Backup imported.');render();}catch{alert('Invalid backup file.');}e.target.value='';};
+(async()=>{try{db=await openDB();await render();}catch(e){alert('Storage is not available in this browser. Open the hosted app in Chrome.');}})();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+</script>
+</body>
+</html>
